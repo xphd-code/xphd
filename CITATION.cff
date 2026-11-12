@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+message: "If you use xphd, please cite the software as below and the article listed under references."
+title: "xphd: exciton-phonon dynamics from first principles"
+version: 2.0.0
+date-released: 2026-11-12
+license: MIT
+type: software
+repository-code: "https://github.com/rishabhsrsw/xphd"
+url: "https://github.com/rishabhsrsw/xphd"
+authors:
+  - family-names: Saraswat
+    given-names: Rishabh
+    affiliation: "Nanoscale Electro-thermal Laboratory, Indian Institute of Information Technology Allahabad, Uttar Pradesh 211015, India"
+  - family-names: Ansari
+    given-names: Mantasha
+    affiliation: "Electronic Structure Theory Group, Department of Electronics and Communication Engineering, Indian Institute of Information Technology Allahabad, Uttar Pradesh 211015, India"
+  - family-names: Verma
+    given-names: Rekha
+    affiliation: "Nanoscale Electro-thermal Laboratory, Indian Institute of Information Technology Allahabad, Uttar Pradesh 211015, India"
+  - family-names: Bhattacharya
+    given-names: Sitangshu
+    affiliation: "Electronic Structure Theory Group, Department of Electronics and Communication Engineering, Indian Institute of Information Technology Allahabad, Uttar Pradesh 211015, India"
+keywords:
+  - exciton-phonon coupling
+  - exciton linewidth
+  - mirror symmetry
+  - Boltzmann transport
+  - photoemission
+  - yambo
+  - LetzElPhC
+references:
+  - type: article
+    title: "Real-time relaxation dynamics of dark excitons in mirror-symmetric monolayers"
+    authors:
+      - family-names: Saraswat
+        given-names: Rishabh
+      - family-names: Ansari
+        given-names: Mantasha
+      - family-names: Verma
+        given-names: Rekha
+      - family-names: Bhattacharya
+        given-names: Sitangshu
+    year: 2026
+    journal: "arXiv"
+    identifiers:
+      - type: other
+        value: "arXiv:2610.12996"
+        description: "arXiv identifier"
+    url: "https://arxiv.org/abs/2610.12996"

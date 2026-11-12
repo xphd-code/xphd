@@ -1,0 +1,392 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[a4paper,left=1.6cm,right=1.6cm,top=2.0cm,bottom=1.6cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[scaled=0.94]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{amsmath,amssymb}
+\usepackage[table]{xcolor}
+\usepackage{booktabs,longtable,array,tabularx}
+\usepackage{fancyhdr,titlesec,enumitem,fancyvrb}
+\usepackage{upquote}
+\usepackage[most]{tcolorbox}
+\definecolor{ink}{HTML}{1B2A41}
+\definecolor{accent}{HTML}{1F5F8B}
+\definecolor{okgreen}{HTML}{2E7D4F}
+\usepackage[colorlinks=true,linkcolor=accent,urlcolor=accent]{hyperref}
+\usepackage[expansion=false,protrusion=false]{microtype}
+\DisableLigatures[-]{encoding = T1, family = tt*}
+
+\input{variant}
+
+\titleformat{\section}{\Large\bfseries\color{ink}}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\color{accent}}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{2.2ex plus .5ex}{0.8ex}
+\titlespacing*{\subsection}{0pt}{1.6ex plus .4ex}{0.5ex}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{accent}xphd: how to run}
+\fancyhead[R]{\small\color{gray}xphd \xphdversion}
+\fancyfoot[R]{\small\color{gray}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{15pt}
+\setlength{\parskip}{0.55ex}
+\setlength{\parindent}{0pt}
+\setlength{\LTpre}{4pt}\setlength{\LTpost}{6pt}
+
+\newcommand{\xphd}{\texttt{xphd}}
+\newcommand{\hd}[1]{\textcolor{white}{\normalfont\bfseries #1}}
+\newcommand{\hdrow}{\rowcolor{accent}}
+\newcommand{\bQ}{\mathbf{Q}}
+\newcommand{\bq}{\mathbf{q}}
+\newtcblisting{cmd}{listing only,breakable,colback=black!4,colframe=black!18,
+  boxrule=0.4pt,arc=1pt,left=4pt,right=4pt,top=2pt,bottom=2pt,
+  listing options={upquote=true,basicstyle=\ttfamily\footnotesize,breaklines=true,columns=fullflexible,keepspaces=true,breakindent=1.5em}}
+\newtcolorbox{note}[1][]{colback=okgreen!7,colframe=okgreen!70!black,boxrule=0.5pt,arc=2pt,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,breakable,#1}
+\newcommand{\step}[4]{%
+  {\small\noindent\begin{tabularx}{\linewidth}{@{}>{\bfseries\leavevmode\color{accent}}p{2.0cm}X@{}}
+  What & #1\\ Needs & #2\\ Writes & #3\\ Check & #4\end{tabularx}\par}\vspace{1.0ex}}
+
+\begin{document}
+\thispagestyle{fancy}
+{\color{ink}\fontsize{26}{30}\selectfont\bfseries xphd: how to run\par}
+\vspace{0.8ex}
+{\raggedright\color{accent}\large Exciton--phonon matrix elements, linewidths, symmetry, transport and photoemission from Quantum~ESPRESSO, LetzElPhC and yambo\par}
+\vspace{1.0ex}
+{Rishabh Saraswat, Mantasha Ansari, Rekha Verma and Sitangshu Bhattacharya\par}
+{\small Indian Institute of Information Technology, Allahabad \quad\textperiodcentered\quad Version \xphdversion, MIT License\par}
+{\small Cite: R.~Saraswat, M.~Ansari, R.~Verma and S.~Bhattacharya, arXiv:2610.12996 (2026); xphd, GitHub, \xphdrepo\par}
+\vspace{1.5ex}
+
+\begin{note}
+This is the only document. It lists what the upstream codes must produce, every command in the order it is run, what each
+needs and writes, and how to tell that its output is right. Every option of every command is printed by
+\texttt{xphd <command> --help} and collected in the reference at the end. Every run writes a report next to its output, a PDF
+on Windows and a text file on Linux (Sec.~\ref{sec:report}).
+\end{note}
+
+{\setlength{\parskip}{0pt}\small\tableofcontents}
+
+% =====================================================================
+\section{What xphd needs and what it gives}
+\begin{tabularx}{\linewidth}{>{\bfseries}p{3.2cm}X}
+Needs & a yambo \texttt{SAVE} (from \texttt{p2y} on the nscf); the BSE at every irreducible $\bQ$ with full diagonalisation
+(\texttt{ndb.BS\_diago\_Q*}); LetzElPhC's \texttt{ndb.elph} built on \emph{the same} \texttt{SAVE}, over the BSE band window;
+\texttt{matdyn.x} frequencies (and eigenvectors) on a fine $q$ mesh; optionally the GW \texttt{ndb.QP} and \texttt{ndb.dipoles}.\\
+Gives & exciton--phonon matrix elements $G(\bQ,\bq)$ on the full zone, one archive per $\bQ$; broadening-free linewidths,
+self-energies and absorption lineshapes; the mirror ($\sigma_h$) parity and irreducible representations of excitons, bands
+and phonons, and the selection rules they imply; exciton dipoles and chirality; real-time Boltzmann transport of the exciton
+populations; exciton photoemission maps (thermal or time-resolved).\\
+\end{tabularx}
+
+% =====================================================================
+\section{Install}
+\begin{cmd}
+cd xphd
+pip install -e ".[plot,yambo]"      # numpy, matplotlib, netCDF4
+pip install <path to yambopy>        # from source; needed by every command that reads yambo or LetzElPhC
+pip install -e ".[hpc]"              # clusters: mpi4py (built against the cluster MPI), scipy, threadpoolctl
+xphd --help                          # every command
+xphd <command> --help                # its options
+python -m pytest                     # synthetic data; no yambo databases needed
+\end{cmd}
+Only \texttt{numpy} is required to import the package; the other libraries are imported by the commands that need them.
+\texttt{scipy} is needed by \texttt{bte}. Paths in angle brackets are placeholders.
+
+% =====================================================================
+\section{The workflow at a glance}
+{\small\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\linewidth}{>{\bfseries\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{5.8cm}>{\raggedright\arraybackslash}X}
+\hdrow \hd{Stage} & \hd{Code} & \hd{Output}\\
+A. Ground state & \texttt{pw.x} scf, nscf; \texttt{p2y} & \texttt{SAVE}\\
+B. Phonons & \texttt{ph.x}; \texttt{q2r.x}; \texttt{matdyn.x} & dyn, dvscf; force constants; fine-mesh frequencies\\
+C. Excitons & yambo BSE (GW optional) & \texttt{ndb.BS\_diago\_Q1} \ldots\ at every irreducible $\bQ$\\
+C$'$. El--ph & LetzElPhC & \texttt{ndb.elph} (same \texttt{SAVE} as C)\\
+D. Archives & \texttt{xphd dmats}, \texttt{generate}, \texttt{check-archive}, \texttt{verify-archives} & \texttt{Dmats.npy}, \texttt{GI\_ExcPh\_Q0001.npz} \ldots\\
+E. Fine phonons & \texttt{xphd matdyn-split}, \texttt{matdyn-merge}, \texttt{modes-check}, \texttt{matdyn}, \texttt{mode-labels} & \texttt{hw\_fine.npy}, \texttt{mode\_labels.npy}\\
+F. Widths & \texttt{xphd linewidth}, \texttt{sweep}, \texttt{unfold}, \texttt{selfenergy}, \texttt{lineshape} & widths, zone maps, $\Sigma(\omega)$, $\varepsilon_2$\\
+G. Symmetry & \texttt{xphd parity}, \texttt{band-parity}, \texttt{irreps}, \texttt{selection-rule} & parity maps, labels, allowed/forbidden split\\
+H. Optics & \texttt{xphd dipoles}, \texttt{chirality} & \texttt{exc\_dipoles.npy}, helicity\\
+I. Dynamics & \texttt{xphd bte}, \texttt{arpes} & snapshots; photoemission maps\\
+\end{tabularx}}
+
+D needs A--C$'$; E needs B; F needs D and E; G needs A, C and D; I needs D and E (and G for \texttt{bte --window}).
+
+% =====================================================================
+\section{Upstream settings}
+xphd trusts its inputs; these must hold.
+\subsection{Quantum ESPRESSO}
+\begin{itemize}[nosep,leftmargin=1.4em]
+\item scf, phonons and nscf in separate directories (the nscf overwrites \texttt{<prefix>.save}).
+\item q-grid = k-grid ($N\times N\times1$), so every $\mathbf{k}+\bq$ lies on the mesh. Set \texttt{fildvscf} in \texttt{ph.x}.
+\item A \texttt{ph.x} restart with \texttt{recover=.true.} trusts the records in \texttt{\_ph0/<prefix>.phsave}: remove the
+\texttt{dynmat.<iq>.*.xml} of any $\bq$ to be recomputed first, or its dvscf is left empty. Check that every dvscf has the same size.
+\item Spin--orbit: \texttt{noncolin=.true.}, \texttt{lspinorb=.true.}, fully relativistic pseudopotentials; \texttt{ph.x} then writes spinor dvscf.
+\end{itemize}
+\subsection{q2r.x and matdyn.x}
+\begin{cmd}
+ q2r.in                              matdyn.in.tmpl  (namelist only; the q-list is appended per chunk)
+ &input                              &input
+   fildyn  = '<prefix>.dyn'            asr = 'crystal', flfrc = '<prefix>.fc'
+   zasr    = 'crystal'                 flfrq = 'FLFRQ', flvec = 'FLVEC'
+   flfrc   = '<prefix>.fc'             loto_2d = .true., q_in_cryst_coord = .true.
+   loto_2d = .true.                    q_in_band_form = .false., nosym = .true., dos = .false.
+ /                                   /
+\end{cmd}
+\texttt{loto\_2d=.true.} in both (the 3D non-analytic term adds a spurious LO splitting at $\Gamma$). The fine mesh is
+$N_f = N\times r$ with $r$ the refinement used later (e.g.\ $18\times20=360$).
+\subsection{LetzElPhC}
+\begin{cmd}
+nqpool      = 4               # nqpool x nkpool = the MPI ranks
+nkpool      = 12
+start_bnd   = <first BSE band>
+end_bnd     = <last BSE band>
+save_dir    = <SAVE>          # the SAVE the BSE reads
+ph_save_dir = ph.save         # the default is ph_save; misspelt keys are ignored silently
+kernel      = dfpt
+convention  = yambo
+\end{cmd}
+\texttt{ph.save} gathers \texttt{dyn0..N}, \texttt{dvscf1..N}, \texttt{patterns.N.xml}, \texttt{tensors.xml},
+\texttt{data-file-schema.xml} and the pseudopotentials (LetzElPhC's \texttt{lelphc -pp}). Run \texttt{mpirun -np 48 lelphc -F lelphc.in}.
+\textbf{Same SAVE:} LetzElPhC and the BSE must read the same \texttt{SAVE} (one wavefunction gauge); redo both if the nscf is redone.
+The precision of LetzElPhC's build must match that of the \texttt{SAVE} (single or double).
+\subsection{yambo}
+\begin{itemize}[nosep,leftmargin=1.4em]
+\item 2D: \texttt{CUTGeo= "slab z"} with the RIM. BSE: \texttt{BSEBands} is the band window (it fixes \texttt{--nv}),
+\texttt{BSEQptR} covers every irreducible $\bQ$, \texttt{BSSmod= "d"} (full diagonalisation) and \texttt{WRbsWF} (eigenvectors written).
+\item Check that the energies in \texttt{ndb.BS\_diago\_Q1} are not all zero and that the report's \texttt{[K+QP]} gap equals the
+Kohn--Sham gap plus the GW correction.
+\end{itemize}
+
+% =====================================================================
+\section{Commands, in order}
+\subsection{Archives}
+\begin{cmd}
+xphd ibz --savepath <SAVE>
+xphd dmats --bse-dir <BSE_DIR> --savepath <SAVE> --ndb-elph <ELPH> --nexc <n>
+xphd generate 0 <ARCH> --nexc <n> --savepath <SAVE> --ndb-elph <ELPH> --bse-dir <BSE_DIR> --dmats Dmats.npy
+xphd check-archive <ARCH>/GI_ExcPh_Q0001.npz --detail
+mpirun -np <R> xphd generate all <ARCH> --nexc <n> --savepath <SAVE> --ndb-elph <ELPH> \
+       --bse-dir <BSE_DIR> --dmats Dmats.npy
+xphd verify-archives --dir <ARCH> --n <N*N>
+\end{cmd}
+\step{\texttt{ibz} lists the irreducible $\bQ$. \texttt{dmats} builds the single-particle rotation matrices over the BSE band window.
+\texttt{generate} computes $G(\bQ,\bq)$ for every $\bq$, branch and pair of states, rotating excitons from the irreducible BSE;
+\texttt{0} is $\Gamma$, \texttt{all} the whole zone (shared between MPI ranks, resumable).}
+{\texttt{SAVE}, the BSE databases, \texttt{ndb.elph}.}
+{\texttt{Dmats.npy}; \texttt{GI\_ExcPh\_Q<iQ+1>.npz} per $\bQ$.}
+{\texttt{check-archive} prints READY, with time reversal and $C_3$ both near $10^{-3}$; one far above the other is a rotation fault
+(or a split doublet: \texttt{--detail}, \texttt{--deg-tol}). \texttt{verify-archives}: all $N^2$ present and complete.}
+
+\subsection{Phonons on the fine mesh}
+\begin{cmd}
+q2r.x < q2r.in
+xphd matdyn-split --n <Nf> --chunks 48 --prefix qlist
+for c in $(seq -f %03g 0 47); do                       # matdyn.x is serial: one process per chunk
+  sed -e "s/FLVEC/modes_$c.modes/" -e "s/FLFRQ/freq_$c.freq/" matdyn.in.tmpl > in_$c
+  cat qlist_$c.txt >> in_$c; matdyn.x < in_$c > out_$c &
+done; wait
+xphd matdyn-merge --chunks 48 -o matdyn.modes --freq matdyn.freq
+xphd modes-check --modes matdyn.modes --freq matdyn.freq --n <Nf>
+xphd matdyn matdyn.freq --fine <Nf> --nbnd <3 x atoms> --npz <ARCH>/GI_ExcPh_Q0001.npz -o hw_fine.npy
+xphd mode-labels --modes matdyn.modes --fine <Nf> --mesh <N> --masses <m_1> <m_2> \
+                 --archive <ARCH>/GI_ExcPh_Q0001.npz --hw-fine hw_fine.npy -o mode_labels.npy
+\end{cmd}
+\step{The fine-mesh frequencies in eV, row-major; \texttt{mode-labels} gives each branch its in-/out-of-plane character on the archive mesh
+(planar two-atom layers; for layers where $\sigma_h$ exchanges atoms take the parities from the el--ph database).}
+{The force constants; one archive for its $\bq$ ordering.}
+{\texttt{matdyn.modes}, \texttt{matdyn.freq}, \texttt{hw\_fine.npy}, \texttt{mode\_labels.npy}.}
+{\texttt{modes-check} passes; \texttt{matdyn} reproduces the archive's frequencies where the meshes coincide ($\mu$eV).
+Negative frequencies only next to $\Gamma$ in the flexural branch.}
+
+\subsection{Linewidths, self-energy and lineshape}
+\begin{cmd}
+xphd linewidth <ARCH>/GI_ExcPh_Q0001.npz --hw-fine hw_fine.npy --T 10 77 300 \
+      --acoustic-model q2 --n-shell 1 --per-mode -o G.npz
+xphd sweep '<ARCH>/GI_ExcPh_Q*.npz' --hw-fine hw_fine.npy --T 77 --acoustic-model q2 --n-shell 1 \
+      --workers 8 --unfold <SAVE> -o lw_77K.npz
+xphd selfenergy <ARCH>/GI_ExcPh_Q0001.npz --hw-fine hw_fine.npy --state 1 --T 300 -o se.npz
+xphd lineshape <ARCH>/GI_ExcPh_Q0001.npz --T 10 77 300 --hw-fine hw_fine.npy \
+      --acoustic-model shell --acoustic-scaling omega --parity parity.npz \
+      --bsdb <BSE_DIR>/ndb.BS_diago_Q1 --n-omega 4801 -o lineshape.npz
+\end{cmd}
+\step{\texttt{linewidth}: golden-rule width of every state at one $\bQ$, the energy $\delta$ integrated on fine-mesh triangles
+(exciton energies refined by local quadratics), emission/absorption and per branch. \texttt{sweep}: the same at every $\bQ$, unfolded
+onto the zone. \texttt{selfenergy}: $\Sigma(\omega)$ of one state with its Kramers--Kronig partner. \texttt{lineshape}: the full
+$\Sigma$ matrix and the absorption line; final states carry the self-consistent width (\texttt{--final-width sc}, default).}
+{Archives and \texttt{hw\_fine.npy}; for \texttt{lineshape} the dipoles (\texttt{--bsdb} or \texttt{--dipoles}) and \texttt{parity.npz}.}
+{\texttt{G.npz}, \texttt{lw\_77K.npz}, \texttt{se.npz}, \texttt{lineshape.npz}.}
+{The acoustic channel inside the cell around $q=0$ is zero by the sum rule unless a model is chosen: \texttt{none} drops it, which
+underestimates the width at a band minimum. \texttt{lineshape} prints the symmetry check (opposite parities $\approx0$, degenerate blocks
+proportional to the identity), the final-width gain (well below 1) and warns if the line is narrower than half its on-shell width; the widths
+at low $T$ need a frequency step below the width (\texttt{--n-omega}).}
+
+\subsection{Symmetry}
+\begin{cmd}
+xphd parity --save <SAVE> --bse-dir <BSE_DIR> --dmats Dmats.npy --nv <nv> --nstates <n> \
+            --deg-tol 0.005 -o parity.npz
+xphd band-parity --save <SAVE> --bse-dir <BSE_DIR> --dmats Dmats.npy --nv <nv> --path G M K G -o band_parity.npz
+xphd irreps --save <SAVE> --bse-dir <BSE_DIR> --dmats Dmats.npy --nv <nv> --points G K M \
+            --nstates <n> -o irreps.npz
+xphd selection-rule --archive <ARCH>/GI_ExcPh_Q0001.npz --parity parity.npz --labels mode_labels.npy \
+                    --state 1 --by-final
+\end{cmd}
+\step{$\chi(\sigma_h)$ of every exciton at every $\bQ$ (unfolded with yambo's own map); band parities; irrep labels with the closure
+of each multiplet; the coupling split into symmetry-allowed and -forbidden.}
+{\texttt{SAVE}, the BSE at all $\bQ$, \texttt{Dmats.npy}, an archive, phonon labels.}
+{\texttt{parity.npz}, \texttt{band\_parity.npz}, \texttt{irreps.npz}, figures.}
+{Every state $\pm1$ (fractional values: a mixed near-degenerate pair; \texttt{--rotate} in \texttt{selection-rule});
+forbidden/allowed at the level of numerical noise; every multiplet closes.}
+
+\subsection{Optics}
+\begin{cmd}
+xphd dipoles --save <SAVE> --bse-dir <BSE_DIR> -o exc_dipoles.npy --deg-tol 0.005
+xphd chirality --save <SAVE> --bse-dir <BSE_DIR> --dipoles exc_dipoles.npy --states 1 2
+\end{cmd}
+\step{Complex $x,y,z$ dipoles of the $\bQ=0$ states from one BSE (validated against yambo's residuals); helicity and valley
+polarisation of a degenerate pair.}{\texttt{SAVE}, the BSE with \texttt{ndb.dipoles}.}{\texttt{exc\_dipoles.npy}; numbers.}
+{Residuals agree per degenerate multiplet; a bright valley pair has helicity $\pm1$.}
+
+\subsection{Transport}
+\begin{cmd}
+xphd bte '<ARCH>/GI_ExcPh_Q*.npz' --T 77 --hw-fine hw_fine.npy --parity parity.npz --window 0.1 --plan
+xphd bte '<ARCH>/GI_ExcPh_Q*.npz' --T 77 --hw-fine hw_fine.npy --parity parity.npz --window 0.1 \
+     --acoustic-model shell --acoustic-scaling omega --inject uniform --state 3 4 \
+     --t-end 20000 --nt 200 --workers 8 --snapshots snaps_77K.npz
+\end{cmd}
+\step{Populations of every state at every $\bQ$ under the full rate matrix (detailed balance, out-rates refined on the fine mesh).
+\texttt{--window} keeps the states within that energy of the minimum on the refined mesh (\texttt{--plan} prints them and the memory first).
+\texttt{--inject}: \texttt{optical} (oscillator-weighted, optional \texttt{--pump-center/--pump-sigma}), \texttt{thermal}, or
+\texttt{uniform} over \texttt{--state} (a degenerate bright pair: the basis-independent unpolarised pump).}
+{Every archive of the zone, \texttt{hw\_fine.npy}; \texttt{parity.npz} with \texttt{--window}.}
+{The snapshot file (populations, energies, per-state widths at every delay).}
+{$N/N_0=1$ throughout; the final distribution against Boltzmann at $T$ (printed).}
+
+\subsection{Photoemission}
+\begin{cmd}
+xphd arpes --save <SAVE> --bse-dir <BSE_DIR> --qp-db <GW>/ndb.QP --temperature 300 --nstates 100 -o arpes_300K.npz
+xphd arpes --save <SAVE> --bse-dir <BSE_DIR> --qp-db <GW>/ndb.QP --snapshots snaps_77K.npz \
+           --times 0 1000 10000 --path M K G "K'" M --sigma 0.01 --box K 0.12 --valence \
+           -o arpes/arpes_{t}fs.npz --series arpes/series.npz
+\end{cmd}
+\step{$I(\mathbf{k},E)=\sum N_{S\bQ}\sum_{vc}|A^{S\bQ}_{vc\mathbf{k}}|^2\,\delta(E-E_{S\bQ}-\varepsilon_{v,\mathbf{k}-\bQ})$ with Boltzmann
+(\texttt{--temperature}) or transport (\texttt{--snapshots}) occupations; maps on a path, momentum boxes, the valence band with its holes,
+the spectra against the delay.}
+{\texttt{SAVE}, the BSE, \texttt{ndb.QP}; a snapshot file.}
+{One map per delay and the series file.}
+{The replica lies below the conduction band by the binding energy; the zone-integrated intensity is constant in time.
+With spin--orbit bands use \texttt{--spin-deg 1}. In PowerShell write \texttt{"K'"} in double quotes.}
+
+% =====================================================================
+\section{The run report}\label{sec:report}
+After every command, also after a failure, rank 0 writes a report: \texttt{<output>\_report.pdf} next to the main
+output, or, when the run wrote nothing, \texttt{xphd\_<command>\_<time>\_report.pdf} in the working directory (\texttt{.txt}
+on Linux, below). The PDF holds:
+\begin{itemize}[nosep,leftmargin=1.4em]
+\item a title bar naming the step (BTE, ARPES, Linewidths, \ldots) with the version;
+\item the xphd banner printed at the start of the run (version, developers and their affiliations, how to cite,
+acknowledgements), beside a diagram of the pipeline (Quantum ESPRESSO, LetzElPhC, yambo and xphd) with this command's step marked;
+\item the command line, status, start time and wall time, working directory;
+\item the environment: xphd, Python and library versions, host, MPI ranks, thread settings;
+\item every input file named on the command line with size, date and a SHA-256 checksum (files up to 64~MB);
+\item every parameter, defaults included;
+\item every file written or changed by the run;
+\item plots of the main results, for the outputs of \texttt{generate}, \texttt{parity}, \texttt{linewidth}, \texttt{sweep},
+\texttt{lineshape}, \texttt{bte} and \texttt{arpes}, each figure with lettered, titled panels and a caption saying what is
+drawn; quantities over the zone are shown along $\Gamma$--M--K--$\Gamma$ (the mesh points on the path) and over the hexagonal first
+Brillouin zone. Only the essential panels are drawn. An archive: the phonon dispersion, the final exciton bands with the one-phonon
+window, the coupling out of the lowest state over the zone and per branch along the path. \texttt{parity}: the exciton bands coloured
+by $\sigma_h$ parity. \texttt{linewidth}: the width of every state, and of state 1 by branch. \texttt{sweep}: the width of the lowest
+exciton over the zone and along the path. \texttt{lineshape}: the width of the A line and $\varepsilon_2$. \texttt{bte}: the mean energy,
+the energy distribution and the population over the zone. \texttt{arpes}: the map along the path and the occupied excitons
+against their momentum; against the delay, the whole-zone spectrum and the mean exciton energy. Other files, such as
+\texttt{Dmats.npy}, are listed and not drawn;
+\item the full log as the terminal leaves it (a progress bar is one line, its final state), and the error if the run failed.
+\end{itemize}
+Off with \texttt{xphd --no-report <command> ...} or \texttt{XPHD\_REPORT=0}.
+
+\textbf{On Linux and clusters.} The system decides the kind of report: the PDF on Windows and macOS, a text report,
+\texttt{<output>\_report.txt}, on Linux (a cluster or an Ubuntu machine), where a terminal has no PDF viewer. The text
+report holds the same banner, run record, inputs with checksums, parameters, outputs and full log, everything but the plots:
+\begin{cmd}
+less lw_report.txt                                  # on the cluster
+\end{cmd}
+\texttt{XPHD\_REPORT=pdf}, \texttt{txt} or \texttt{both} overrides the choice. With \texttt{both} on a cluster the PDF is drawn too
+(no display is needed; DejaVu fonts where the desktop ones are missing) and the text report lists its figures by title, panels
+and caption; copy it home for the plots (\texttt{scp user@cluster:/path/to/run/lw\_report.pdf .}, or WinSCP). The PDF needs
+\texttt{matplotlib} (the \texttt{plot} extra, installed by \texttt{scripts/hpc/install\_cluster.sh}); without it the text report is written.
+
+% =====================================================================
+\section{Running in parallel}
+The numbers do not depend on the layout: serial, process-pool and MPI runs write identical arrays.
+
+{\small\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{5.4cm}>{\raggedright\arraybackslash}X}
+\hdrow \hd{Command} & \hd{Spread over} & \hd{Memory per process}\\
+\texttt{generate} & MPI ranks over $\bQ$; BLAS threads in each rank & one copy of the el--ph and BSE databases\\
+\texttt{sweep} & MPI ranks (one per core) or \texttt{--workers} & one archive and the fine mesh\\
+\texttt{bte}, out-rate refinement & MPI ranks or \texttt{--workers} & bounded by \texttt{--mem-per-task} / \texttt{XPHD\_TASK\_MEM\_GB}\\
+\texttt{bte}, propagation & one process, every core as BLAS threads & about $10\times(\text{states})^2\times8$ bytes\\
+every other command & rank 0 only & \\
+\end{tabularx}}
+
+\textbf{Install on a cluster} (\texttt{scripts/hpc/install\_cluster.sh} does this): \texttt{mpi4py} must be built against the
+MPI that launches the job; the PyPI wheel brings its own MPI and runs unconnected copies.
+\begin{cmd}
+module load <compilers and MPI used for QE/yambo>
+python3 -m venv ~/xphd-env && source ~/xphd-env/bin/activate
+MPICC=$(which mpicc) pip install --no-binary=mpi4py mpi4py      # Intel MPI: MPICC=mpiicc
+pip install -e "./xphd[hpc,yambo,plot]"
+mpirun -np 4 xphd hpc-info                                      # ranks, nodes, cores, BLAS threads, memory
+\end{cmd}
+\textbf{Sizing.} \texttt{generate}: measure one $\bQ$ (\texttt{/usr/bin/time -v}, maximum resident size); ranks per node
+$=\lfloor 0.85\times$ node memory / that size$\rfloor$, cores per rank as BLAS threads. \texttt{sweep} and the \texttt{bte} refinement:
+one rank per core, \texttt{OMP\_NUM\_THREADS=1}; more ranks than $\bQ$ points gain nothing. \texttt{bte} propagation: one node,
+all cores as threads (\texttt{--threads}); unbind it (\texttt{srun --cpu-bind=none}, \texttt{mpirun --bind-to none}).
+\texttt{generate --resume} (default for several $\bQ$) and \texttt{--checkpoint DIR} (\texttt{sweep}, \texttt{bte}) make a stopped job
+resumable: resubmit the same script. SLURM and PBS templates for every stage are in \texttt{scripts/hpc/}.
+
+{\small\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{>{\ttfamily}p{5.0cm}X}
+\hdrow \hd{Variable} & \hd{Meaning}\\
+OMP\_NUM\_THREADS & BLAS threads per process (\texttt{--threads}, \texttt{--blas-threads} override)\\
+XPHD\_TASK\_MEM\_GB & memory bound per \texttt{bte} refinement task (default 2)\\
+XPHD\_MPI=0 / 1 & disable / force MPI detection\\
+XPHD\_ALL\_RANKS=1 & every rank prints (debugging)\\
+XPHD\_MP\_START & start method for \texttt{--workers}\\
+XPHD\_NO\_BANNER=1 & no start-up banner\\
+XPHD\_REPORT=0 & no report\\
+XPHD\_REPORT=pdf / txt / both & which report; by default the PDF on Windows and macOS, the text report on Linux\\
+\end{tabularx}}
+
+% =====================================================================
+\section{When a result looks wrong}
+{\small\renewcommand{\arraystretch}{1.2}
+\begin{longtable}{>{\raggedright\arraybackslash}p{4.6cm}>{\raggedright\arraybackslash}p{5.0cm}>{\raggedright\arraybackslash}p{6.6cm}}
+\hdrow \hd{Symptom} & \hd{Cause} & \hd{Fix}\\
+\endhead
+Every BSE energy exactly 0, eigenvectors fine & a compiler fault in yambo's \texttt{BS\_E=cmplx(BS\_E\_real,...)} (Intel ifort) & the element loop in \texttt{K\_diago\_driver.F}\\
+LetzElPhC: ``Unable to open the dyn0 file'' & \texttt{ph\_save\_dir} not set & \texttt{ph\_save\_dir = ph.save}\\
+dvscf files of 0 bytes after a \texttt{ph.x} restart & \texttt{recover} trusted old \texttt{phsave} records & delete those \texttt{dynmat.<iq>.*.xml}, rerun the $\bq$ without \texttt{recover}\\
+\texttt{check-archive}: one of TR/$C_3$ far above the other & a rotation fault, or a doublet split by long-range exchange & \texttt{--detail}; raise \texttt{--deg-tol}\\
+Fractional parities in a ring of $\bQ$ & mixed near-degenerate states of opposite parity & \texttt{parity --deg-tol}, \texttt{selection-rule --rotate}\\
+Width at a band minimum far too small & the acoustic channel inside the first cell is missing & \texttt{--acoustic-model q2} (\texttt{linewidth}) or \texttt{shell} (\texttt{lineshape}, \texttt{bte})\\
+Band widths too steep near crossings & global Fourier interpolation rings & \texttt{--band-interp local} (default)\\
+\texttt{matdyn} outputs broken after \texttt{cat} & a header and cumulative distances per chunk & \texttt{xphd matdyn-merge}\\
+$\varepsilon_2$ line much narrower than its width at $E_A$ & one-shot $\Sigma$ at the band bottom & \texttt{lineshape --final-width sc} (default)\\
+yambopy ``open-shell'' error reading \texttt{ndb.dipoles} & band count when the first band is not 1 & \texttt{xphd dipoles}\\
+\texttt{hpc-info}: ``MPI not active'' under \texttt{srun} & \texttt{mpi4py} not built against this MPI, or \texttt{srun} without \texttt{--mpi=pmix} & rebuild \texttt{mpi4py} from source; \texttt{srun --mpi=pmix}\\
+``launched with N MPI ranks but mpi4py cannot be imported'' & the environment is not activated in the job script & \texttt{source \textasciitilde/xphd-env/bin/activate} in the script\\
+K/K$'$ weights differ transiently in \texttt{bte} & the solver's basis inside a degenerate pair & \texttt{--inject uniform --state <pair>}, \texttt{--deg-tol}\\
+\end{longtable}}
+
+\iffull
+\input{extra}
+\fi
+
+\appendix
+\section{Command reference}
+Generated from \texttt{xphd <command> --help}.
+\input{reference}
+
+\end{document}

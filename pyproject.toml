@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xphd"
+version = "2.0.0"
+description = "Exciton-phonon dynamics from first principles: symmetry, linewidths, real-time transport and time-resolved ARPES"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "R. Saraswat"}, {name = "M. Ansari"}, {name = "R. Verma"}, {name = "S. Bhattacharya"}]
+keywords = ["exciton", "phonon", "linewidth", "yambo", "LetzElPhC", "tetrahedron", "symmetry", "ARPES", "Boltzmann", "MPI", "HPC"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Programming Language :: Python :: 3",
+]
+dependencies = ["numpy>=1.21"]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.5"]
+generate = ["netCDF4", "tqdm"]
+# commands reading yambo databases also need yambopy, installed from source
+yambo = ["netCDF4"]
+# clusters: MPI across nodes, run-time BLAS thread control, the BTE solver,
+# progress bars. mpi4py must be built against the cluster MPI (see docs/xphd_run.pdf)
+hpc = ["mpi4py>=3.1", "threadpoolctl>=3.1", "scipy>=1.7", "tqdm"]
+dev = ["pytest>=7", "matplotlib>=3.5"]
+
+[project.scripts]
+xphd = "xphd.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
