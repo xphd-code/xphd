@@ -6,6 +6,7 @@ import sys
 import numpy as np
 import pytest
 
+from xphd import banner as xbanner
 from xphd import cli, report
 
 pytest.importorskip("matplotlib")
@@ -149,7 +150,7 @@ def test_report_carries_the_printed_banner(archive, tmp_path, monkeypatch, capsy
     assert lines and all(ln in out for ln in lines)
     text = "\n".join(lines)
     for part in ("Exciton-Phonon Dynamics", "Developers:", "Sitangshu Bhattacharya [2]",
-                 "please cite", "xphd, GitHub, https://github.com/", "Acknowledgements", "python "):
+                 "please cite", "doi.org/" if xbanner.DOI else "github.com/", "Acknowledgements", "python "):
         assert part in text
     assert "$ xphd" not in text
     monkeypatch.setenv("XPHD_NO_BANNER", "1")

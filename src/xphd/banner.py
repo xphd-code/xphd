@@ -32,8 +32,10 @@ AFFILIATION = "Indian Institute of Information Technology, Allahabad"
 PAPER = ("R. Saraswat, M. Ansari, R. Verma and S. Bhattacharya, "
          "Real-time relaxation dynamics of dark excitons in mirror-symmetric "
          "monolayers, arXiv:2610.12996 (2026)")
-REPOSITORY = "https://github.com/rishabhsrsw/xphd"
-SOFTWARE = f"xphd, GitHub, {REPOSITORY}" if REPOSITORY else ""
+REPOSITORY = "https://github.com/xphd-code/xphd"
+DOI = "10.5281/zenodo.24184943"
+SOFTWARE = (f"xphd, Zenodo, https://doi.org/{DOI}" if DOI else
+            f"xphd, GitHub, {REPOSITORY}" if REPOSITORY else "")
 
 ACKNOWLEDGEMENT = (
     "The developers thank the Anusandhan National Research Foundation (ANRF), "

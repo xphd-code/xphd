@@ -16,7 +16,7 @@ from .selfenergy import SelfEnergy, kramers_kronig, self_energy
 from .sweep import LinewidthField, sweep
 from .tetra import delta_weights_2d
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 __author__ = "R. Saraswat, S. Bhattacharya, R. Verma, M. Ansari"
 __affiliation__ = "Indian Institute of Information Technology, Allahabad"
 

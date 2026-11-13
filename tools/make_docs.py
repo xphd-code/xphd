@@ -57,9 +57,12 @@ def commands():
     return names, helps
 
 
-def repository():
-    from xphd.banner import REPOSITORY
-    return REPOSITORY
+def software():
+    """How the handbook cites the code: the Zenodo DOI, else the repository."""
+    from xphd.banner import DOI, REPOSITORY
+    if DOI:
+        return f"Zenodo, \\url{{https://doi.org/{DOI}}}"
+    return f"GitHub, \\url{{{REPOSITORY}}}"
 
 
 def version():
@@ -94,7 +97,7 @@ def main():
         with open(os.path.join(build, "variant.tex"), "w") as f:
             f.write(f"\\newif\\iffull\\full{'true' if full else 'false'}\n"
                     f"\\newcommand{{\\xphdversion}}{{{tex(version())}}}\n"
-                    f"\\newcommand{{\\xphdrepo}}{{\\url{{{repository()}}}}}\n")
+                    f"\\newcommand{{\\xphdsoftware}}{{{software()}}}\n")
         with open(os.path.join(build, "reference.tex"), "w") as f:
             f.write(reference(names))
         with open(os.path.join(build, "extra.tex"), "w") as f:

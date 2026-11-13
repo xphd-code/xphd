@@ -8,7 +8,7 @@
    / . \| |    | | | | |__| |
   /_/ \_\_|    |_| |_|_____/
 
-  Version 2.0.0  --  Exciton-Phonon Dynamics
+  Version 2.0.1  --  Exciton-Phonon Dynamics
 
   Developers:
     Rishabh Saraswat [1]            Mantasha Ansari [2]
@@ -23,7 +23,7 @@
     - R. Saraswat, M. Ansari, R. Verma and S. Bhattacharya, Real-time
       relaxation dynamics of dark excitons in mirror-symmetric
       monolayers, arXiv:2610.12996 (2026)
-    - xphd, GitHub, https://github.com/rishabhsrsw/xphd
+    - xphd, Zenodo, https://doi.org/10.5281/zenodo.24184943
 
   Acknowledgements:
     The developers thank the Anusandhan National Research Foundation
@@ -153,7 +153,7 @@ If you use xphd, please cite
 
 - R. Saraswat, M. Ansari, R. Verma and S. Bhattacharya, Real-time relaxation dynamics of dark
   excitons in mirror-symmetric monolayers, [arXiv:2610.12996](https://arxiv.org/abs/2610.12996) (2026)
-- xphd, GitHub, [github.com/rishabhsrsw/xphd](https://github.com/rishabhsrsw/xphd)
+- xphd, Zenodo, [doi:10.5281/zenodo.24184943](https://doi.org/10.5281/zenodo.24184943); code on GitHub, [github.com/xphd-code/xphd](https://github.com/xphd-code/xphd)
 
 ```bibtex
 @misc{saraswat2026dark,
@@ -167,9 +167,10 @@ If you use xphd, please cite
 @software{xphd,
   author  = {Saraswat, Rishabh and Ansari, Mantasha and Verma, Rekha and Bhattacharya, Sitangshu},
   title   = {xphd: exciton-phonon dynamics from first principles},
-  version = {2.0.0},
+  version = {2.0.1},
   year    = {2026},
-  url     = {https://github.com/rishabhsrsw/xphd}
+  doi     = {10.5281/zenodo.24184943},
+  url     = {https://github.com/xphd-code/xphd}
 }
 ```
 
